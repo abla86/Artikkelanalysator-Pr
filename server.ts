@@ -331,6 +331,55 @@ Svar i gyldig JSON-format:
   }
 });
 
+// Real Crossref DOI Lookup Endpoint
+app.post("/api/lookup-doi", async (req, res) => {
+  try {
+    const { doi } = req.body;
+    if (!doi) {
+      return res.status(400).json({ error: "DOI må oppgis." });
+    }
+
+    const cleanDoi = doi.trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i, '');
+    const doiRegex = /^10.\d{4,9}\/[-._;()/:A-Z0-9]+$/i;
+    if (!doiRegex.test(cleanDoi)) {
+      return res.status(400).json({ error: "Ugyldig DOI-format. Eksempel: 10.1016/j.jclinepi.2023.05.001" });
+    }
+
+    const response = await fetch(`https://api.crossref.org/works/${encodeURIComponent(cleanDoi)}`, {
+      headers: {
+        'User-Agent': 'EvidenceAppEngine/2.0 (mailto:support@evidenceapp.local)'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(404).json({ error: `DOI ble ikke funnet i Crossref-registeret (status ${response.status}).` });
+    }
+
+    const data = await response.json();
+    const work = data.message;
+
+    const title = work.title?.[0] || 'Ukjent tittel';
+    const authors = (work.author || []).map((a: any) => `${a.family || ''}, ${a.given || ''}`.trim()).filter(Boolean);
+    const year = work.published?.['date-parts']?.[0]?.[0] || work.issued?.['date-parts']?.[0]?.[0] || new Date().getFullYear();
+    const journal = work['container-title']?.[0] || work.publisher || 'Ukjent tidsskrift';
+    const abstract = work.abstract ? work.abstract.replace(/<[^>]*>?/gm, '') : 'Ingen abstrakt registrert i Crossref.';
+
+    res.json({
+      doi: cleanDoi,
+      title,
+      authors: authors.length > 0 ? authors : ['Ukjent forfatter'],
+      year,
+      journal,
+      abstract,
+      publisher: work.publisher,
+      verified: true
+    });
+  } catch (error: any) {
+    console.error("DOI Lookup error:", error);
+    res.status(500).json({ error: error.message || "Feil under oppslag mot Crossref." });
+  }
+});
+
 // Student Paper & Exam Evaluation Endpoint (KBP Master level, APA 7, Epistemology, AI/Plagiarism check)
 app.post("/api/evaluate-student-paper", async (req, res) => {
   try {
@@ -340,21 +389,8 @@ app.post("/api/evaluate-student-paper", async (req, res) => {
     }
 
     if (!ai) {
-      // Robust offline fallback for 100% free functionality without API key
-      return res.json({
-        estimatedGrade: "B",
-        score: 82,
-        gradeRationale: "God oppgave på masternivå med solid forankring i KBP og hermeneutisk tilnærming.",
-        kbpAndEpistemology: "Studenten demonstrerer god forståelse for sosialkonstruktivisme og hermeneutisk metode. Drøftingen av overføringsverdi mellom fastlege og barnevern kunne vært utvidet.",
-        referenceCheck: "Kildebruk er ryddig og følger APA 7-standard med noen mindre formateringsavvik i sekundærsiteringer.",
-        aiProbability: 12,
-        aiAssessment: "Lav sannsynlighet for AI; teksten viser personlig faglig refleksjon og kritisk sans.",
-        plagiarismAssessment: "Ingen opplagte plagiatindikasjoner; korrekt bruk av anførsler og henvisninger.",
-        improvements: [
-          "Utdyp den vitenskapsteoretiske begrunnelsen for valg av informanter.",
-          "Styrk drøftingen av forskningsetiske utfordringer ved små utvalg i distriktskommuner.",
-          "Kontroller at alle kilder i litteraturlisten er korrekt sitert i teksten iht. APA 7."
-        ]
+      return res.status(500).json({ 
+        error: "GEMINI_API_KEY er ikke konfigurert. Ekte AI-analyse krever gyldig API-nøkkel (ingen hardkodede eller simulerte resultater tillates)." 
       });
     }
 
@@ -405,21 +441,7 @@ Svar i gyldig JSON-format:
     res.json(result);
   } catch (error: any) {
     console.error("Evaluate student paper error:", error);
-    // Fallback response on error
-    res.json({
-      estimatedGrade: "B",
-      score: 80,
-      gradeRationale: "Vurdert via lokal fallback-modell pga. API-grensesnitt.",
-      kbpAndEpistemology: "God metodisk forankring og relevant teoribruk.",
-      referenceCheck: "APA 7 formatering ser gjennomgående bra ut.",
-      aiProbability: 10,
-      aiAssessment: "Indikerer menneskelig egenforfatterskap.",
-      plagiarismAssessment: "Ingen plagiat avdekt.",
-      improvements: [
-        "Inkluder flere primærkilder fra de siste 3 årene.",
-        "Drøft metodebegrensninger tydeligere i konklusjonen."
-      ]
-    });
+    res.status(500).json({ error: error.message || "Feil under AI-vurdering av oppgave." });
   }
 });
 

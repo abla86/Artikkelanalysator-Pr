@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck, HelpCircle } from 'lucide-react';
+import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck, HelpCircle, FolderArchive, Terminal } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help';
-  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help') => void;
+  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log';
+  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log') => void;
   selectedArticleTitle: string;
   isAnalyzing: boolean;
 }
@@ -171,6 +171,30 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <HelpCircle className="w-4 h-4" />
               <span>Hjelp</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('system-export')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'system-export'
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <FolderArchive className="w-4 h-4" />
+              <span>System & ZIP</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('audit-log')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'audit-log'
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Terminal className="w-4 h-4" />
+              <span>Logg & Metodikk</span>
             </button>
           </div>
         </div>

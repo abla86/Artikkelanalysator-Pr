@@ -15,9 +15,11 @@ import { StudentPaperEvaluator } from './components/StudentPaperEvaluator';
 import { ReferencesView } from './components/ReferencesView';
 import { ReportView } from './components/ReportView';
 import { HelpGuideComponent } from './components/HelpGuideComponent';
+import { SystemExportComponent } from './components/SystemExportComponent';
+import { AuditLogView } from './components/AuditLogView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log'>('library');
   const [selectedArticle, setSelectedArticle] = useState<ArticleData>(PRELOADED_ARTICLES[0]);
   const [customTitle, setCustomTitle] = useState<string>('');
   const [customText, setCustomText] = useState<string>('');
@@ -194,6 +196,14 @@ export default function App() {
 
         {activeTab === 'help' && (
           <HelpGuideComponent />
+        )}
+
+        {activeTab === 'system-export' && (
+          <SystemExportComponent />
+        )}
+
+        {activeTab === 'audit-log' && (
+          <AuditLogView />
         )}
       </main>
 
