@@ -10,6 +10,7 @@ interface AppraisalCriterion {
   explanation: string;
   uncertainty: 'Lav' | 'Moderat' | 'Høy';
   userOverridden?: boolean;
+  isConfirmed?: boolean;
 }
 
 interface FileAnalysisResult {
@@ -46,6 +47,7 @@ interface FileAnalysisResult {
   };
   criteria: AppraisalCriterion[];
   overallSummary: string;
+  isReportConfirmed?: boolean;
 }
 
 export const FileAppraisalView: React.FC = () => {
@@ -115,13 +117,24 @@ export const FileAppraisalView: React.FC = () => {
     if (!analysisResult) return;
     const updatedCriteria = analysisResult.criteria.map(c => {
       if (c.id === criterionId) {
-        return { ...c, [field]: value, userOverridden: true };
+        return { ...c, [field]: value, userOverridden: true, isConfirmed: false };
       }
       return c;
     });
     setAnalysisResult({ ...analysisResult, criteria: updatedCriteria });
-    setSuccessMsg('Vurdering oppdatert (brukeroverstyring registrert).');
+    setSuccessMsg('Vurdering oppdatert (krever ny bekreftelse).');
     setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
+  const handleToggleCriterionConfirmation = (criterionId: string) => {
+    if (!analysisResult) return;
+    const updatedCriteria = analysisResult.criteria.map(c => {
+      if (c.id === criterionId) {
+        return { ...c, isConfirmed: !c.isConfirmed };
+      }
+      return c;
+    });
+    setAnalysisResult({ ...analysisResult, criteria: updatedCriteria });
   };
 
   const handleSaveAppraisal = () => {
@@ -137,7 +150,14 @@ export const FileAppraisalView: React.FC = () => {
 
   const handleExportReport = () => {
     if (!analysisResult) return;
-    const reportText = `KOMPLETT KRITISK VURDERINGSRAPPORT (Faktisk Filbasert Analyse)
+    const unconfirmedCount = analysisResult.criteria.filter(c => !c.isConfirmed).length;
+    if (unconfirmedCount > 0) {
+      if (!window.confirm(`Advarsel: ${unconfirmedCount} av ${analysisResult.criteria.length} kriterier er ennå ikke eksplisitt bekreftet av bruker (fremstår som ubehandlet AI-forslag). Vil du likevel eksportere rapporten?`)) {
+        return;
+      }
+    }
+
+    const reportText = `KOMPLETT KRITISK VURDERINGSRAPPORT (Faktisk Filbasert Analyse - Verifisert av Bruker)
 Generert: ${new Date().toISOString()}
 Dokumentnavn: ${analysisResult.fileName}
 Utvalgt Vurderingsinstrument: ${analysisResult.selectedInstrument.name} (${analysisResult.selectedInstrument.acronym})
@@ -165,11 +185,12 @@ Begrunnelse for instrument: ${analysisResult.selectedInstrument.justification}
 - Finansiering / Interessekonflikter: ${analysisResult.structuredContent.fundingAndConflicts}
 - Konklusjon: ${analysisResult.structuredContent.conclusions}
 
---- SYSTEMATISK KRITISK VURDERING (SJEKKLISTE) ---
+--- SYSTEMATISK KRITISK VURDERING (SJEKKLISTE MED BRUKERBEKREFTELSE) ---
 ${analysisResult.criteria.map((c, i) => `
 Kriterium ${i + 1} [${c.category}]: ${c.criterion}
 - Evidens fra filen: "${c.evidenceQuote}"
 - Vurdering: ${c.appraisal} (Usikkerhet: ${c.uncertainty}${c.userOverridden ? ' [Overstyrt av bruker]' : ''})
+- Brukerstatus: ${c.isConfirmed ? 'Eksplisitt godkjent og verifisert av bruker' : 'Ubekreftet AI-forslag'}
 - Begrunnelse: ${c.explanation}
 `).join('\n')}
 
@@ -492,6 +513,24 @@ ${analysisResult.overallSummary}
                         className="w-full p-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-hidden"
                       />
                     </div>
+                  </div>
+
+                  {/* Explicit AI suggestion confirmation control */}
+                  <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      {c.isConfirmed ? '✓ Godkjent av bruker som del av endelig rapport' : '⚠ AI-forslag venter på bruk者の bekreftelse'}
+                    </span>
+                    <button
+                      onClick={() => handleToggleCriterionConfirmation(c.id)}
+                      className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                        c.isConfirmed
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                          : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{c.isConfirmed ? 'Godkjent (Klikk for å endre)' : 'Bekreft AI-forslag'}</span>
+                    </button>
                   </div>
                 </div>
               ))}
