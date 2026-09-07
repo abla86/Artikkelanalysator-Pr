@@ -445,6 +445,128 @@ Svar i gyldig JSON-format:
   }
 });
 
+// Full File-Based Critical Appraisal Endpoint (Strict compliance with user requirements)
+app.post("/api/appraise-uploaded-file", async (req, res) => {
+  try {
+    const { fileName, fileText } = req.body;
+    if (!fileText || !fileText.trim()) {
+      return res.status(400).json({ error: "Ingen filtekst mottatt for analyse." });
+    }
+
+    if (!ai) {
+      return res.status(500).json({ 
+        error: "GEMINI_API_KEY er ikke konfigurert. Ekte filbasert analyse krever gyldig API-nøkkel (ingen hardkodede eller simulerte resultater tillates)." 
+      });
+    }
+
+    const prompt = `
+Du er en fremragende professor og ekspert på vitenskapelig metode, evidensbasert praksis og kritisk vurdering av forskningslitteratur.
+Analyser den opplastede forskningsfilen ("${fileName || 'Dokument'}") fullstendig på norsk. Les hele teksten nøye.
+
+HER ER HELE FILTEKSTEN SOM SKAL ANALYSERES:
+----------------------------------------
+${fileText}
+----------------------------------------
+
+Oppgave:
+1. Identifiser studiedesign og velg det mest egnede kritisk vurderingsverktøy (f.eks. CASP for RCT/Kvalitativ, JBI for tverrsnittsstudier, Cochrane RoB 2 for kliniske studier, AMSTAR 2 for systematiske oversikter). Gi en begrunnelse for valg av instrument. Hvis usikkert, oppgi at avklaring kreves.
+2. Trekk ut og strukturer informasjon fra hele dokumentet fordelt på følgende 20 punkter:
+   - forskningsspørsmål
+   - formål
+   - studiedesign
+   - populasjon/deltakere
+   - utvalg
+   - intervensjon eller eksponering
+   - sammenligning
+   - utfall
+   - datainnsamling
+   - måleinstrumenter
+   - analysemetoder
+   - resultater
+   - statistiske analyser
+   - bias og mulige feilkilder
+   - metodiske styrker (array)
+   - metodiske svakheter (array)
+   - begrensninger (array)
+   - etiske forhold
+   - finansiering/interessekonflikter
+   - konklusjoner.
+3. Utfør en systematisk kritisk vurdering (sjekkliste med 5 til 8 sentrale kriterier tilpasset instrumentet). For hvert kriterium må du:
+   - oppgi kriteriet / spørsmålet
+   - finne eksakt sitat / evidens fra filen (evidensgrunnlag)
+   - gi vurdering ('Ja', 'Delvis', 'Nei', 'Uklar/Manglende')
+   - forklare vurderingen grundig
+   - angi usikkerhet ('Lav', 'Moderat', 'Høy').
+4. Gi en samlet kritisk vurdering og konklusjon.
+
+Svar utelukkende i gyldig JSON-format i henhold til følgende skjema:
+{
+  "fileName": "${fileName || 'Dokument'}",
+  "fileSize": ${fileText.length},
+  "uploadedAt": "${new Date().toISOString()}",
+  "selectedInstrument": {
+    "name": "CASP Randomised Controlled Trial Checklist",
+    "acronym": "CASP RCT",
+    "justification": "Begrunnelse...",
+    "confidence": "Sikker"
+  },
+  "structuredContent": {
+    "researchQuestion": "...",
+    "purpose": "...",
+    "studyDesign": "...",
+    "population": "...",
+    "sample": "...",
+    "interventionOrExposure": "...",
+    "comparison": "...",
+    "outcomes": "...",
+    "dataCollection": "...",
+    "instruments": "...",
+    "analysisMethods": "...",
+    "results": "...",
+    "statisticalAnalysis": "...",
+    "biasAndConfounders": "...",
+    "methodologicalStrengths": ["...", "..."],
+    "methodologicalWeaknesses": ["...", "..."],
+    "limitations": ["...", "..."],
+    "ethicalConsiderations": "...",
+    "fundingAndConflicts": "...",
+    "conclusions": "..."
+  },
+  "criteria": [
+    {
+      "id": "crit-1",
+      "criterion": "Er formålet med studien klart formulert?",
+      "category": "Formål & Design",
+      "evidenceQuote": "Eksakt sitat fra filen...",
+      "appraisal": "Ja",
+      "explanation": "Forklaring basert på sitatet...",
+      "uncertainty": "Lav"
+    }
+  ],
+  "overallSummary": "Samlet faglig konklusjon om studiens kvalitet, validitet og overførselsverdi..."
+}
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    });
+
+    const rawText = response.text || "{}";
+    const cleanedJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleanedJson);
+
+    res.json(result);
+  } catch (error: any) {
+    console.error("Appraise uploaded file error:", error);
+    res.status(500).json({ error: error.message || "Feil under filbasert kritisk vurdering." });
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -17,9 +17,10 @@ import { ReportView } from './components/ReportView';
 import { HelpGuideComponent } from './components/HelpGuideComponent';
 import { SystemExportComponent } from './components/SystemExportComponent';
 import { AuditLogView } from './components/AuditLogView';
+import { FileAppraisalView } from './components/FileAppraisalView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log' | 'file-appraisal'>('library');
   const [selectedArticle, setSelectedArticle] = useState<ArticleData>(PRELOADED_ARTICLES[0]);
   const [customTitle, setCustomTitle] = useState<string>('');
   const [customText, setCustomText] = useState<string>('');
@@ -204,6 +205,10 @@ export default function App() {
 
         {activeTab === 'audit-log' && (
           <AuditLogView />
+        )}
+
+        {activeTab === 'file-appraisal' && (
+          <FileAppraisalView />
         )}
       </main>
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck, HelpCircle, FolderArchive, Terminal } from 'lucide-react';
+import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck, HelpCircle, FolderArchive, Terminal, UploadCloud } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log';
-  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log') => void;
+  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log' | 'file-appraisal';
+  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help' | 'system-export' | 'audit-log' | 'file-appraisal') => void;
   selectedArticleTitle: string;
   isAnalyzing: boolean;
 }
@@ -195,6 +195,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Terminal className="w-4 h-4" />
               <span>Logg & Metodikk</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('file-appraisal')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'file-appraisal'
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <UploadCloud className="w-4 h-4 text-indigo-600" />
+              <span>Filbasert Vurdering</span>
             </button>
           </div>
         </div>
