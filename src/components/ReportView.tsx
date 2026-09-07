@@ -67,7 +67,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ analysis, article }) => 
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
-      <div className="flex flex-wrap justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-xs gap-3">
+      <div className="flex flex-wrap justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-xs gap-3 no-print">
         <div className="flex items-center space-x-2">
           <ShieldCheck className="w-5 h-5 text-indigo-600" />
           <span className="text-sm font-bold text-slate-950">Komplett Kritisk Vurderingsrapport</span>
@@ -91,7 +91,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ analysis, article }) => 
       </div>
 
       {/* Printable Report Document */}
-      <div className="bg-white rounded-2xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8 print:shadow-none print:border-none">
+      <div className="bg-white rounded-2xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8 print-container print:shadow-none print:border-none">
         <div className="border-b border-slate-200 pb-6">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 mb-3">
             {analysis.articleType}
