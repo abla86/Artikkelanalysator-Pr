@@ -62,3 +62,18 @@ test('DOI Format Validation Test', async (t) => {
   assert.strictEqual(validateDoiFormat(validDoi), true);
   assert.strictEqual(validateDoiFormat(invalidDoi), false);
 });
+
+test('Evidence Quote Verification Test', async (t) => {
+  const fileText = "Dette er en randomisert kontrollert studie med 240 deltakere. Formålet var å undersøke digital oppfølging.";
+  const lowerFileText = fileText.toLowerCase();
+
+  const validQuote = "randomisert kontrollert studie";
+  const fakeQuote = "oppdiktet sitat som ikke finnes i teksten";
+
+  const isValFound = lowerFileText.includes(validQuote.toLowerCase());
+  const isFakeFound = lowerFileText.includes(fakeQuote.toLowerCase());
+
+  assert.strictEqual(isValFound, true);
+  assert.strictEqual(isFakeFound, false);
+});
+

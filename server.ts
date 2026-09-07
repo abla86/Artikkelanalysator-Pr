@@ -560,6 +560,28 @@ Svar utelukkende i gyldig JSON-format i henhold til følgende skjema:
     const cleanedJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(cleanedJson);
 
+    // Strict Evidence Verification: Check if proposed quotes actually exist in fileText
+    if (result.criteria && Array.isArray(result.criteria)) {
+      const lowerFileText = fileText.toLowerCase();
+      result.criteria = result.criteria.map((c: any) => {
+        const quote = c.evidenceQuote || '';
+        const cleanQuote = quote.trim().toLowerCase();
+        const isFound = cleanQuote.length > 3 && lowerFileText.includes(cleanQuote);
+        
+        if (!isFound) {
+          return {
+            ...c,
+            evidenceQuote: "Uklar eller manglende direkte evidens i dokumentet (AI-sitat ikke gjenfunnet i filteksten)",
+            appraisal: "Uklar/Manglende",
+            uncertainty: "Høy",
+            explanation: `${c.explanation} [Merk: Oppgitt sitat ble ikke verifisert i originaldokumentet og er markert som usikkert].`,
+            verifiedByDocument: false
+          };
+        }
+        return { ...c, verifiedByDocument: true };
+      });
+    }
+
     res.json(result);
   } catch (error: any) {
     console.error("Appraise uploaded file error:", error);
