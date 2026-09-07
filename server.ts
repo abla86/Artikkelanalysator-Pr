@@ -468,8 +468,14 @@ HER ER HELE FILTEKSTEN SOM SKAL ANALYSERES:
 ${fileText}
 ----------------------------------------
 
+VIKTIGE METODISKE OG ETISKE KRAV TIL VURDERINGEN:
+1. EVIDENSSITATER: ALLE sitater i 'evidenceQuote' MÅ være 100% ordrette, komplette utdrag direkte fra filteksten ovenfor. 
+   - STRENGT FORBUDT med forkortelser, sammendrag eller utelatelser ved bruk av "..." eller "…". Sitatet skal gjengi hele den relevante setningen eller avsnittet nøyaktig slik det står i originalteksten.
+2. ETISK VURDERING: Vær helt presis på etiske forhold (f.eks. skille mellom om REK-godkjenning ble vurdert som unødvendig etter nasjonale regler vs. fritak, og innhenting av informert samtykke).
+3. METODISK PRESISJON: Beskriv nøyaktige teknikker som faktisk er dokumentert i teksten (f.eks. purposive/teoretisk sampling, teoretisk metning, åpen/aksial/selektiv koding, konstant komparativ analyse) i stedet for generelle formuleringer.
+
 Oppgave:
-1. Identifiser studiedesign og velg det mest egnede kritisk vurderingsverktøy (f.eks. CASP for RCT/Kvalitativ, JBI for tverrsnittsstudier, Cochrane RoB 2 for kliniske studier, AMSTAR 2 for systematiske oversikter). Gi en begrunnelse for valg av instrument. Hvis usikkert, oppgi at avklaring kreves.
+1. Identifiser studiedesign og velg det mest egnede kritisk vurderingsverktøy (f.eks. CASP for RCT/Kvalitativ, JBI for kvalitative studier/tverrsnitt). Gi en faglig begrunnelse for valg av instrument.
 2. Trekk ut og strukturer informasjon fra hele dokumentet fordelt på følgende 20 punkter:
    - forskningsspørsmål
    - formål
@@ -493,9 +499,9 @@ Oppgave:
    - konklusjoner.
 3. Utfør en systematisk kritisk vurdering (sjekkliste med 5 til 8 sentrale kriterier tilpasset instrumentet). For hvert kriterium må du:
    - oppgi kriteriet / spørsmålet
-   - finne eksakt sitat / evidens fra filen (evidensgrunnlag)
+   - finne et NØYAKTIG, UFORKORTET ORDRETT SITAT fra filteksten (uten "...")
    - gi vurdering ('Ja', 'Delvis', 'Nei', 'Uklar/Manglende')
-   - forklare vurderingen grundig
+   - forklare vurderingen grundig basert på faktiske detaljer i teksten
    - angi usikkerhet ('Lav', 'Moderat', 'Høy').
 4. Gi en samlet kritisk vurdering og konklusjon.
 
@@ -505,8 +511,8 @@ Svar utelukkende i gyldig JSON-format i henhold til følgende skjema:
   "fileSize": ${fileText.length},
   "uploadedAt": "${new Date().toISOString()}",
   "selectedInstrument": {
-    "name": "CASP Randomised Controlled Trial Checklist",
-    "acronym": "CASP RCT",
+    "name": "JBI Critical Appraisal Checklist for Qualitative Research",
+    "acronym": "JBI Qualitative",
     "justification": "Begrunnelse...",
     "confidence": "Sikker"
   },
@@ -537,13 +543,13 @@ Svar utelukkende i gyldig JSON-format i henhold til følgende skjema:
       "id": "crit-1",
       "criterion": "Er formålet med studien klart formulert?",
       "category": "Formål & Design",
-      "evidenceQuote": "Eksakt sitat fra filen...",
+      "evidenceQuote": "Ordrett sitat fra filen uten ...",
       "appraisal": "Ja",
-      "explanation": "Forklaring basert på sitatet...",
+      "explanation": "Forklaring...",
       "uncertainty": "Lav"
     }
   ],
-  "overallSummary": "Samlet faglig konklusjon om studiens kvalitet, validitet og overførselsverdi..."
+  "overallSummary": "Samlet faglig konklusjon..."
 }
 `;
 
@@ -560,21 +566,22 @@ Svar utelukkende i gyldig JSON-format i henhold til følgende skjema:
     const cleanedJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
     const result = JSON.parse(cleanedJson);
 
-    // Strict Evidence Verification: Check if proposed quotes actually exist in fileText
+    // Strict Evidence Verification: Check if proposed quotes actually exist in fileText and contain no ellipsis (...)
     if (result.criteria && Array.isArray(result.criteria)) {
       const lowerFileText = fileText.toLowerCase();
       result.criteria = result.criteria.map((c: any) => {
         const quote = c.evidenceQuote || '';
+        const hasEllipsis = quote.includes('...') || quote.includes('…');
         const cleanQuote = quote.trim().toLowerCase();
-        const isFound = cleanQuote.length > 3 && lowerFileText.includes(cleanQuote);
+        const isFound = cleanQuote.length > 3 && !hasEllipsis && lowerFileText.includes(cleanQuote);
         
         if (!isFound) {
           return {
             ...c,
-            evidenceQuote: "Uklar eller manglende direkte evidens i dokumentet (AI-sitat ikke gjenfunnet i filteksten)",
+            evidenceQuote: hasEllipsis ? "Ugyldig forkortet sitat (...) avvist. Kravet er 100% uforkortet ordrett utdrag." : "Uklar eller manglende direkte evidens i dokumentet (AI-sitat ikke gjenfunnet i filteksten)",
             appraisal: "Uklar/Manglende",
             uncertainty: "Høy",
-            explanation: `${c.explanation} [Merk: Oppgitt sitat ble ikke verifisert i originaldokumentet og er markert som usikkert].`,
+            explanation: `${c.explanation} [Merk: Oppgitt sitat ${hasEllipsis ? 'inneholdt ulovlig forkortelse (...)' : 'ble ikke gjenfunnet ordrett'} i originaldokumentet].`,
             verifiedByDocument: false
           };
         }
