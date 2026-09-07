@@ -30,12 +30,29 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'preloaded' | 'custom'>('preloaded');
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        setCustomTitle(file.name.replace(/\.[^/.]+$/, ""));
+        setCustomText(content);
+        setIsCustom(true);
+        setActiveSubTab('custom');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-slate-900">Velg eller last opp artikkel for kritisk vurdering</h2>
         <p className="text-slate-600 mt-2 max-w-2xl mx-auto">
-          Verktøyet er klargjort med de to vedlagte artiklene (Øverhaug 2024 og Sahota 2026) samt mulighet for å analysere egne artikler med strenge sjekklister og vitenskapelig begrunnelse.
+          Verktøyet er klargjort med de to vedlagte artiklene (Øverhaug 2024 og Sahota 2026) samt mulighet for å laste opp egne filer (.txt, .md, .doc) eller skrive inn tekst.
         </p>
       </div>
 
@@ -66,7 +83,7 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Lim inn / Skriv inn egen artikkel
+            Last opp fil / Lim inn tekst
           </button>
         </div>
       </div>
@@ -114,8 +131,17 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
           })}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs mb-8">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Lim inn artikkeltekst eller sammendrag</h3>
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs mb-8 space-y-6">
+          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-indigo-500 transition-colors bg-slate-50">
+            <Upload className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
+            <h4 className="text-sm font-bold text-slate-900">Last opp dokument fra maskinen</h4>
+            <p className="text-xs text-slate-500 mt-1 mb-3">Støtter .txt, .md, .doc, og tekstfiler</p>
+            <label className="inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs">
+              <span>Velg fil</span>
+              <input type="file" accept=".txt,.md,.doc,.docx" onChange={handleFileUpload} className="hidden" />
+            </label>
+          </div>
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Artikkeltittel</label>
@@ -173,3 +199,4 @@ export const ArticleSelector: React.FC<ArticleSelectorProps> = ({
     </div>
   );
 };
+
