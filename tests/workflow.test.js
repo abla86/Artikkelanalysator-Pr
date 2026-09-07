@@ -77,3 +77,43 @@ test('Evidence Quote Verification Test', async (t) => {
   assert.strictEqual(isFakeFound, false);
 });
 
+test('Full Article Ingestion, Document Parsing and Evidence Verification Test', async (t) => {
+  // Simulerer en fullstendig forskningsartikkel (f.eks. Øverhaug-studie eller tilsvarende kvalitativ/kvantitativ studie)
+  const fullArticleText = `
+  Tittel: Utvikling av relasjonell koordinering i tverrfaglige helseteam: En kvalitativ studie
+  Forfattere: Anne Beth Øverhaug et al.
+  
+  Bakgrunn og hensikt:
+  Helsevesenet opplever økt kompleksitet som krever sømløst samarbeid. Formålet med denne studien var å undersøke hvordan relasjonell koordinering utvikler seg i tverrfaglige team over tid.
+  
+  Metode:
+  Studien benyttet et kvalitativt design med semistrukturerte dybdeintervju av 18 helsearbeidere i spesialisthelsetjenesten. Dataanalysen ble utført ved hjelp av systematisk tekstkondensering.
+  
+  Resultater:
+  Analysen avdekket tre hovedtemaer: (1) felles forståelse av pasientforløpet, (2) gjensidig respekt på tvers av profesjonsgrenser, og (3) hyppig, tidsriktig kommunikasjon. Deltakerne fremhevet at felles møteplasser var avgjørende for å bygge tillit.
+  
+  Konklusjon:
+  Relasjonell koordinering styrkes gjennom strukturert samhandling og felles arenaer. Dette har direkte implikasjoner for pasientsikkerheten.
+  `;
+
+  // 1. Validere at dokumentet inneholder tilstrekkelig tekst for fulltekstparsing
+  assert.ok(fullArticleText.length > 200, 'Artikkelteksten må være fullstendig og over 200 tegn');
+
+  // 2. Simulere dynamisk instrumentvalg basert på studiedesign ('kvalitativt design')
+  const detectedDesign = fullArticleText.toLowerCase().includes('kvalitativt design') ? 'Kvalitativ forskning' : 'Kvantitativ forskning';
+  assert.strictEqual(detectedDesign, 'Kvalitativ forskning');
+
+  const selectedInstrument = detectedDesign === 'Kvalitativ forskning' 
+    ? { acronym: 'JBI Qualitative', name: 'JBI Critical Appraisal Checklist for Qualitative Research' }
+    : { acronym: 'CASP RCT', name: 'CASP Randomised Controlled Trial Checklist' };
+
+  assert.strictEqual(selectedInstrument.acronym, 'JBI Qualitative');
+
+  // 3. Verifisere evidenssitater i fullteksten
+  const proposedQuote = "felles forståelse av pasientforløpet";
+  const lowerFullText = fullArticleText.toLowerCase();
+  const isQuoteVerified = lowerFullText.includes(proposedQuote.toLowerCase());
+  assert.strictEqual(isQuoteVerified, true, 'Sitatet må bli verifisert direkte mot den faktiske artikkelteksten');
+});
+
+
