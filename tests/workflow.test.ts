@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { validateDoiFormat, fetchArticleByDoi } from '../src/utils/doiAndAutosave.ts';
+import { AppraisalWorkflowBridge } from '../src/services/appraisalWorkflowBridge.ts';
 
 test('Critical Workflow Integration Test: Import -> Validate DOI -> Appraisal -> Report', async (t) => {
   const testDoi = '10.1016/j.jclinepi.2023.05.001';
@@ -77,43 +78,22 @@ test('Evidence Quote Verification Test', async (t) => {
   assert.strictEqual(isFakeFound, false);
 });
 
-test('Full Article Ingestion, Document Parsing and Evidence Verification Test', async (t) => {
-  // Simulerer en fullstendig forskningsartikkel (f.eks. Øverhaug-studie eller tilsvarende kvalitativ/kvantitativ studie)
-  const fullArticleText = `
-  Tittel: Utvikling av relasjonell koordinering i tverrfaglige helseteam: En kvalitativ studie
-  Forfattere: Anne Beth Øverhaug et al.
-  
-  Bakgrunn og hensikt:
-  Helsevesenet opplever økt kompleksitet som krever sømløst samarbeid. Formålet med denne studien var å undersøke hvordan relasjonell koordinering utvikler seg i tverrfaglige team over tid.
-  
-  Metode:
-  Studien benyttet et kvalitativt design med semistrukturerte dybdeintervju av 18 helsearbeidere i spesialisthelsetjenesten. Dataanalysen ble utført ved hjelp av systematisk tekstkondensering.
-  
-  Resultater:
-  Analysen avdekket tre hovedtemaer: (1) felles forståelse av pasientforløpet, (2) gjensidig respekt på tvers av profesjonsgrenser, og (3) hyppig, tidsriktig kommunikasjon. Deltakerne fremhevet at felles møteplasser var avgjørende for å bygge tillit.
-  
-  Konklusjon:
-  Relasjonell koordinering styrkes gjennom strukturert samhandling og felles arenaer. Dette har direkte implikasjoner for pasientsikkerheten.
+test('End-to-End Workflow & Integrity Pipeline Test', async (t) => {
+  const sampleText = `
+  Tittel: Teoretisk og metodisk tilnærming til samhandling i helsetjenesten
+  Forfattere: Hansen et al.
+  Abstract: Denne studien undersøker samhandling ved bruk av kvalitativ metode og purposive sampling.
+  Methodology: Vi intervjuet 12 deltakere inntil teoretisk metning var nådd. Dataanalyse med åpen og aksial koding.
+  Ethics: Godkjenning fra REK ble vurdert som unødvendig etter nasjonale regler, men informert samtykke ble innhentet.
   `;
 
-  // 1. Validere at dokumentet inneholder tilstrekkelig tekst for fulltekstparsing
-  assert.ok(fullArticleText.length > 200, 'Artikkelteksten må være fullstendig og over 200 tegn');
-
-  // 2. Simulere dynamisk instrumentvalg basert på studiedesign ('kvalitativt design')
-  const detectedDesign = fullArticleText.toLowerCase().includes('kvalitativt design') ? 'Kvalitativ forskning' : 'Kvantitativ forskning';
-  assert.strictEqual(detectedDesign, 'Kvalitativ forskning');
-
-  const selectedInstrument = detectedDesign === 'Kvalitativ forskning' 
-    ? { acronym: 'JBI Qualitative', name: 'JBI Critical Appraisal Checklist for Qualitative Research' }
-    : { acronym: 'CASP RCT', name: 'CASP Randomised Controlled Trial Checklist' };
-
-  assert.strictEqual(selectedInstrument.acronym, 'JBI Qualitative');
-
-  // 3. Verifisere evidenssitater i fullteksten
-  const proposedQuote = "felles forståelse av pasientforløpet";
-  const lowerFullText = fullArticleText.toLowerCase();
-  const isQuoteVerified = lowerFullText.includes(proposedQuote.toLowerCase());
-  assert.strictEqual(isQuoteVerified, true, 'Sitatet må bli verifisert direkte mot den faktiske artikkelteksten');
+  const session = AppraisalWorkflowBridge.runCompleteWorkflow('test-artikkel.pdf', sampleText);
+  assert.ok(session.document.isValid);
+  assert.strictEqual(session.instrument.acronym, 'JBI Qualitative');
+  assert.ok(session.integrity);
+  assert.ok(session.coverage.totalCount > 0);
+  assert.ok(session.resultScore.score >= 0);
 });
+
 
 
