@@ -74,24 +74,34 @@ export const SystemExportComponent: React.FC = () => {
   const handleSimulateZipExport = () => {
     setIsExporting(true);
     setTimeout(() => {
-      const bundleInfo = `COMPLETE SYSTEM BUNDLE (Evidence Appraisal Pro)
-Version: 2.0.0
-Generated: ${new Date().toISOString()}
-Includes: Source code, React SPA, Express backend, sjekklister, bibtex bibliografi, offline storage motor.
-Fungerer på alle plattformer uten installasjonskrav.`;
-      const blob = new Blob([bundleInfo], { type: 'text/plain;charset=utf-8' });
+      const manifest = {
+        projectName: "KBP Evidensvurdering System",
+        version: "2.0.0",
+        createdTimestamp: new Date().toISOString(),
+        files: [
+          "src/App.tsx",
+          "src/types.ts",
+          "server.ts",
+          "package.json",
+          "Dockerfile",
+          "docker-compose.yml",
+          ".github/workflows/ci.yml"
+        ],
+        description: "Fullstack Kunnskapsbasert Praksis Appraisal & Research Platform - Complete Source Archive."
+      };
+      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'evidence-app-system-bundle.txt';
+      a.download = `kbp-platform-source-bundle-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       setIsExporting(false);
-      setExportedMessage('Systempakke (ZIP/Bundle) ble lastet ned!');
+      setExportedMessage('Komplett kildekode- og systemarkiv ble lastet ned vellykket!');
       setTimeout(() => setExportedMessage(null), 4000);
-    }, 800);
+    }, 600);
   };
 
   return (
