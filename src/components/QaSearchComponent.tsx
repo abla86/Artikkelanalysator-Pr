@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArticleData } from '../types';
-import { Search, Sparkles, BookOpen, Quote, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Sparkles, BookOpen, Quote, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 
 interface QaSearchComponentProps {
   selectedArticle: ArticleData;
@@ -17,6 +17,7 @@ export const QaSearchComponent: React.FC<QaSearchComponentProps> = ({ selectedAr
   const [question, setQuestion] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<QaResult | null>(null);
+  const [showArticleTextHighlight, setShowArticleTextHighlight] = useState<boolean>(false);
 
   const predefinedQuestions = [
     'Hva er studiens hovedfunn og teoretiske modell?',
@@ -31,6 +32,7 @@ export const QaSearchComponent: React.FC<QaSearchComponentProps> = ({ selectedAr
 
     setLoading(true);
     setResult(null);
+    setShowArticleTextHighlight(false);
 
     try {
       const res = await fetch('/api/qa-search', {
@@ -56,16 +58,18 @@ export const QaSearchComponent: React.FC<QaSearchComponentProps> = ({ selectedAr
     }
   };
 
+  const fullArticleText = `${selectedArticle.abstract}\n\n${selectedArticle.fullText}`;
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
         <div>
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 mb-2">
-            Interaktivt Spørsmål & Svar (AI-grovsøk med kildehenvisning)
+            Interaktivt Spørsmål & Svar (Sanntids kildehenvisning & Fargekoding)
           </span>
-          <h2 className="text-xl font-bold text-slate-900">Still egne spørsmål til artikkelen</h2>
+          <h2 className="text-xl font-bold text-slate-900">Still egne spørsmål til {selectedArticle.title}</h2>
           <p className="text-sm text-slate-600 mt-1">
-            Skriv et hvilket som helst spørsmål om metode, utvalg, funn eller etikk. Systemet søker i teksten, fargekoder funnene og oppgir nøyaktig kildehenvisning.
+            Skriv et spørsmål om metode, utvalg, funn eller etikk. Systemet henter svar med fargekodede sitater og direkte lenke til kilden i teksten.
           </p>
         </div>
 
@@ -122,7 +126,7 @@ export const QaSearchComponent: React.FC<QaSearchComponentProps> = ({ selectedAr
               <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-indigo-50 px-3 py-1 rounded-full">
                 Kategori: {result.category}
               </span>
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="text-xs text-slate-500 font-mono bg-slate-100 px-2.5 py-1 rounded-lg">
                 Kilde: {result.referenceSource}
               </span>
             </div>
@@ -132,19 +136,53 @@ export const QaSearchComponent: React.FC<QaSearchComponentProps> = ({ selectedAr
               <p className="text-slate-800 leading-relaxed text-base">{result.answer}</p>
             </div>
 
-            {/* Color-coded matched quote */}
-            <div className="bg-amber-50/80 p-5 rounded-xl border border-amber-200 text-amber-900 space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-amber-800">
-                <Quote className="w-4 h-4 text-amber-600" />
-                <span>Verifisert sitat / Fargekodet tekstfunn i artikkelen:</span>
+            {/* Color-coded matched quote with click action */}
+            <div 
+              onClick={() => setShowArticleTextHighlight(!showArticleTextHighlight)}
+              className="bg-amber-50/90 p-5 rounded-xl border border-amber-300 shadow-xs cursor-pointer hover:bg-amber-100/60 transition-all space-y-2 group"
+            >
+              <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-amber-800">
+                <div className="flex items-center space-x-2">
+                  <Quote className="w-4 h-4 text-amber-600" />
+                  <span>Verifisert sitat / Fargekodet tekstfunn (Klikk for å vise i artikkel)</span>
+                </div>
+                <ExternalLink className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
               </div>
-              <p className="italic font-serif bg-amber-100/60 p-3.5 rounded-lg border border-amber-300 text-slate-900">
+              <p className="italic font-serif bg-amber-200/50 p-3.5 rounded-lg border border-amber-300 text-slate-900 text-sm">
                 "{result.matchedQuote}"
               </p>
             </div>
+
+            {/* Highlighted context in article text */}
+            {showArticleTextHighlight && (
+              <div className="bg-slate-900 text-slate-100 p-6 rounded-2xl space-y-3 animate-fade-in">
+                <div className="flex justify-between items-center text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                  <span>Artikkelkontekst (Sitat fremhevet i gult/gull)</span>
+                  <button 
+                    onClick={() => setShowArticleTextHighlight(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    Lukk
+                  </button>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-xl font-mono text-xs text-slate-300 max-h-72 overflow-y-auto leading-relaxed whitespace-pre-wrap">
+                  {fullArticleText.split(result.matchedQuote).map((part, i, arr) => (
+                    <React.Fragment key={i}>
+                      {part}
+                      {i < arr.length - 1 && (
+                        <mark className="bg-amber-300 text-slate-950 font-bold px-1 rounded">
+                          {result.matchedQuote}
+                        </mark>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 };
+
