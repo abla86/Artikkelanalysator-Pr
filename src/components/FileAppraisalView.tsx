@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Upload, CheckCircle2, AlertTriangle, ShieldCheck, Download, Edit3, Save, RefreshCw, Layers, BookOpen, HelpCircle } from 'lucide-react';
+import { ArticleViewerWithHighlights } from './ArticleViewerWithHighlights';
 
 interface AppraisalCriterion {
   id: string;
@@ -329,6 +330,23 @@ ${analysisResult.overallSummary}
               <strong>Faglig begrunnelse for instrumentvalg:</strong> {analysisResult.selectedInstrument.justification}
             </p>
           </div>
+
+          {/* Color-coded Article Viewer with Highlights */}
+          <ArticleViewerWithHighlights
+            title={fileName || 'Lastet forskningsartikkel'}
+            authors="Ekstrahert fra dokument"
+            journal="KBP Vitenskapelig Arkiv"
+            year={2026}
+            fullText={fileText}
+            checklists={analysisResult.criteria.map(c => ({
+              id: c.id,
+              question: c.criterion,
+              category: c.category as any,
+              answer: c.appraisal === 'Ja' ? 'Ja' : c.appraisal === 'Delvis' ? 'Delvis' : 'Nei',
+              justification: c.explanation,
+              evidenceQuote: c.evidenceQuote
+            }))}
+          />
 
           {/* Structured Content Extraction (20 Points) */}
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">

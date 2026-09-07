@@ -5,6 +5,16 @@ export type ArticleType =
   | 'Kunnskapsbasert teori / Teoretisk artikkel'
   | 'Faglitteratur / Fagartikkel';
 
+export interface EvidenceHighlight {
+  id: string;
+  questionId: string;
+  category: 'Formål & Design' | 'Metode & Utvalg' | 'Dataanalyse & Funn' | 'Etikk & Konklusjon';
+  quote: string;
+  color: string; // Tailwind color class or hex (e.g. 'bg-emerald-100 border-emerald-400 text-emerald-900')
+  startIndex?: number;
+  endIndex?: number;
+}
+
 export interface ArticleData {
   id: string;
   title: string;
@@ -17,6 +27,7 @@ export interface ArticleData {
   defaultClassification: ArticleType;
   methodology: string;
   keyFindings: string[];
+  highlights?: EvidenceHighlight[];
 }
 
 export interface ChecklistItem {
@@ -26,6 +37,7 @@ export interface ChecklistItem {
   answer: 'Ja' | 'Delvis' | 'Nei' | 'Ikke relevant';
   justification: string;
   evidenceQuote: string;
+  highlightColor?: string;
 }
 
 export interface ArticleAnalysis {
@@ -45,6 +57,7 @@ export interface ArticleAnalysis {
   strengths: string[];
   limitations: string[];
   practicalImplications: string;
+  highlights?: EvidenceHighlight[];
 }
 
 export interface ComparisonResult {
@@ -57,3 +70,4 @@ export interface ComparisonResult {
   }[];
   conclusion: string;
 }
+
