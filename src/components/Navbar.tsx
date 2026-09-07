@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck } from 'lucide-react';
+import { BookOpen, CheckSquare, Layers, FileText, ArrowRightLeft, Sparkles, Library, Presentation, Search, Bookmark, Globe, ShieldCheck, HelpCircle } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report';
-  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report') => void;
+  activeTab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help';
+  setActiveTab: (tab: 'library' | 'classification' | 'checklist' | 'custom-checklist' | 'comparison' | 'presentation' | 'qa' | 'verifier' | 'student-evaluator' | 'references' | 'report' | 'help') => void;
   selectedArticleTitle: string;
   isAnalyzing: boolean;
 }
@@ -160,22 +160,67 @@ export const Navbar: React.FC<NavbarProps> = ({
               <FileText className="w-4 h-4" />
               <span>Rapport</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('help')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'help'
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>Hjelp</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Subheader showing active article context */}
-      <div className="bg-slate-50 border-t border-slate-100 px-4 py-2 text-xs text-slate-600 flex justify-between items-center max-w-7xl mx-auto sm:px-6 lg:px-8">
+      {/* Subheader showing active article context and Quick Action Toolbar */}
+      <div className="bg-slate-50 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-600 flex flex-wrap justify-between items-center gap-2 max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div className="truncate flex items-center space-x-2">
-          <span className="font-semibold text-slate-700">Aktiv artikkel:</span>
-          <span className="text-indigo-600 font-medium truncate max-w-xl">{selectedArticleTitle}</span>
+          <span className="font-semibold text-slate-700">Aktiv kilde:</span>
+          <span className="text-indigo-600 font-medium truncate max-w-sm">{selectedArticleTitle}</span>
         </div>
-        {isAnalyzing && (
-          <div className="flex items-center space-x-1.5 text-indigo-600 font-medium animate-pulse">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI-analyserer med begrunnelse...</span>
-          </div>
-        )}
+
+        <div className="flex items-center space-x-2">
+          <span className="text-slate-400 font-medium hidden sm:inline">Hurtighandlinger:</span>
+          <button
+            onClick={() => setActiveTab('library')}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors shadow-xs"
+            title="Importer eller velg forskningskilde"
+          >
+            <Library className="w-3.5 h-3.5 text-indigo-600" />
+            <span>1. Importer kilde</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('checklist')}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors shadow-xs"
+            title="Utfør kritisk vurdering og sjekkliste"
+          >
+            <CheckSquare className="w-3.5 h-3.5 text-indigo-600" />
+            <span>2. Utfør vurdering</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('student-evaluator')}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors shadow-xs"
+            title="Kjør kontroll for AI-mønstre og plagiat"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+            <span>3. AI- & Plagiatsjekk</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('report')}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors shadow-xs"
+            title="Generer samlet rapport og eksport"
+          >
+            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+            <span>4. Eksport & Rapport</span>
+          </button>
+        </div>
       </div>
     </header>
   );
